@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interview Invitation — Schedule Your Interview</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+
+        .hero-bg {
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-bg::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(ellipse at 30% 50%, rgba(59, 130, 246, 0.15) 0%, transparent 60%),
+                        radial-gradient(ellipse at 70% 20%, rgba(139, 92, 246, 0.1) 0%, transparent 50%);
+            animation: float 20s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(2%, -2%) rotate(1deg); }
+            66% { transform: translate(-1%, 1%) rotate(-1deg); }
+        }
+
+        .slot-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .slot-card:hover:not(.booked):not(.selected) {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(59, 130, 246, 0.15);
+            border-color: #3b82f6;
+        }
+        .slot-card.selected {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(59, 130, 246, 0.25);
+            border-color: #3b82f6;
+            background: linear-gradient(135deg, #eff6ff, #dbeafe);
+        }
+        .slot-card.booked {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .date-tab {
+            transition: all 0.3s ease;
+        }
+        .date-tab.active {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover:not(:disabled) {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4);
+        }
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .step-indicator .step.active .circle {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+        }
+        .step-indicator .step.completed .circle {
+            background: #10b981;
+            color: white;
+        }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            top: -10px;
+            animation: confettiFall 3s ease-in forwards;
+            z-index: 1000;
+        }
+        @keyframes confettiFall {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+
+        .pulse-ring {
+            animation: pulseRing 2s ease-out infinite;
+        }
+        @keyframes pulseRing {
+            0% { transform: scale(1); opacity: 0.5; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+
+        .checkmark-circle {
+            animation: scaleIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        @keyframes scaleIn {
+            from { transform: scale(0); }
+            to { transform: scale(1); }
+        }
+
+        .checkmark-path {
+            stroke-dasharray: 50;
+            stroke-dashoffset: 50;
+            animation: drawCheck 0.6s ease 0.3s forwards;
+        }
+        @keyframes drawCheck {
+            to { stroke-dashoffset: 0; }
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+    <!-- Hero Section -->
+    <section class="hero-bg text-white relative">
+        <div class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 py-16 md:py-24">
+            <div class="flex flex-col md:flex-row items-center gap-10">
+                <div class="flex-1 text-center md:text-left">
+                    <div class="inline-flex items-center gap-2 bg-blue-500/20 border border-blue-400/30 text-blue-200 px-4 py-1.5 rounded-full text-sm font-medium mb-6">
+                        <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                        Interview Invitation
+                    </div>
+                    <h1 class="text-4xl md:text-5xl lg:text-6xl font-800 leading-tight mb-4">
+                        You're <span class="bg-gradient-to-r from-blue-400 to-violet-400 bg-clip-text text-transparent">Invited</span>
+                        <br>to Interview!
+                    </h1>
+                    <p class="text-lg md:text-xl text-slate-300 max-w-xl mb-8 leading-relaxed">
+                        Hi Nokwanda! Congratulations — we were impressed by your application and would love to meet you. Please select a time slot that works best for you.
+                    </p>
+                    <div class="flex flex-wrap gap-4 justify-center md:justify-start">
+                        <div class="glass rounded-xl px-5 py-3 flex items-center gap-3">
+                            <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                            <div>
+                                <div class="text-xs text-slate-400">Position</div>
+                                <div class="font-semibold text-sm">Administrative Assistant</div>
+                            </div>
+                        </div>
+                        <div class="glass rounded-xl px-5 py-3 flex items-center gap-3">
+                            <svg class="w-5 h-5 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            <div>
+                                <div class="text-xs text-slate-400">Format</div>
+                                <div class="font-semibold text-sm">Virtual</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex-1 hidden md:block">
+                    <img src="https://images.pexels.com/photos/5439368/pexels-photo-5439368.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200"
+                         alt="Interview" class="rounded-2xl shadow-2xl shadow-black/30 border border-white/10 w-full object-cover max-h-[380px]">
+                </div>
+            </div>
+        </div>
+        <!-- Wave divider -->
+        <div class="absolute bottom-0 left-0 w-full overflow-hidden leading-none">
+            <svg class="relative block w-full h-16" viewBox="0 0 1200 120" preserveAspectRatio="none">
+                <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V120H0V95.8C57.1,85.63,127.42,73.37,321.39,56.44Z" fill="#f9fafb"></path>
+            </svg>
+        </div>
+    </section>
+
+    <!-- Interview Details Strip -->
+    <section class="max-w-6xl mx-auto px-4 sm:px-6 -mt-2 mb-10">
+        <div class="bg-white rounded-2xl shadow-lg shadow-gray-200/50 border border-gray-100 p-6 md:p-8 grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div class="flex items-start gap-4">
+                <div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
+                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                </div>
+                <div>
+                    <div class="text-xs text-gray-400 uppercase tracking-wider font-medium">Interviewer</div>
+                    <div class="font-semibold text-gray-900 mt-0.5">Sarah Ferris</div>
+                    <div class="text-sm text-gray-500">VP of Talent Acquisition</div>
+                </div>
+            </div>
+            <div class="flex items-start gap-4">
+                <div class="w-12 h-12 rounded-xl bg-violet-50 flex items-center justify-center shrink-0">
+                    <svg class="w-6 h-6 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+                <div>
+                    <div class="text-xs text-gray-400 uppercase tracking-wider font-medium">Duration</div>
+                    <div class="font-semibold text-gray-900 mt-0.5">45 Minutes</div>
+                    <div class="text-sm text-gray-500">Technical + Behavioral</div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Main Scheduling Section -->
+    <section class="max-w-6xl mx-auto px-4 sm:px-6 pb-20" id="scheduler">
+        <!-- Step Indicator -->
+        <div class="step-indicator flex items-center justify-center gap-0 mb-12">
+            <div class="step active" id="step1-indicator">
+                <div class="flex flex-col items-center">
+                    <div class="circle w-10 h-10 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center font-bold text-sm transition-all duration-300">1</div>
+                    <span class="text-xs mt-2 font-medium text-gray-500">Select Slot</span>
+                </div>
+            </div>
+            <div class="w-16 md:w-24 h-0.5 bg-gray-200 mt-[-12px] transition-all duration-300" id="line1"></div>
+            <div class="step" id="step3-indicator">
+                <div class="flex flex-col items-center">
+                    <div class="circle w-10 h-10 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center font-bold text-sm transition-all duration-300">2</div>
+                    <span class="text-xs mt-2 font-medium text-gray-500">Confirmed</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 1: Time Slot Selection -->
+        <div id="step1" class="fade-in">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-2">Choose Your Preferred Time</h2>
+                <p class="text-gray-500 max-w-lg mx-auto">Select a date below and pick a time slot that fits your schedule. All times shown in your local timezone.</p>
+            </div>
+
+            <!-- Date Tabs -->
+            <div class="flex flex-wrap justify-center gap-3 mb-8" id="dateTabs"></div>
+
+            <!-- Time Slots Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto" id="slotsGrid"></div>
+
+            <!-- Continue Button -->
+            <div class="text-center mt-10">
+                <button id="continueBtn" disabled onclick="goToStep2()"
+                    class="btn-primary text-white font-semibold px-10 py-3.5 rounded-xl text-lg disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    Confirm Interview
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 2 removed: candidate details pre-filled -->
+        <div id="step2" class="hidden"></div>
+
+        <!-- Step 3: Confirmation -->
+        <div id="step3" class="hidden">
+            <div class="max-w-2xl mx-auto text-center fade-in">
+                <!-- Animated Checkmark -->
+                <div class="relative inline-block mb-8">
+                    <div class="absolute inset-0 bg-green-200 rounded-full pulse-ring"></div>
+                    <svg class="w-24 h-24 checkmark-circle" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="45" fill="#10b981"/>
+                        <path class="checkmark-path" d="M30 52 L44 66 L70 38" fill="none" stroke="white" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-3">Interview Scheduled!</h2>
+                <p class="text-gray-500 text-lg mb-10 max-w-md mx-auto">Your interview has been confirmed. You'll receive a confirmation email shortly with all the details.</p>
+
+                <!-- Booking Summary Card -->
+                <div class="bg-white rounded-2xl shadow-lg shadow-gray-200/50 border border-gray-100 p-6 md:p-8 text-left space-y-5 mb-8" id="bookingSummary">
+                </div>
+
+                <!-- Actions -->
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <button onclick="addToCalendar()" class="inline-flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-700 font-medium px-6 py-3 rounded-xl hover:bg-gray-50 transition-all">
+                        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        Add to Calendar
+                    </button>
+                    <button onclick="window.print()" class="inline-flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-700 font-medium px-6 py-3 rounded-xl hover:bg-gray-50 transition-all">
+                        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                        Print Details
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 py-10 text-center text-sm">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="flex items-center justify-center mb-3">
+                <span class="text-white font-semibold text-lg">SARS</span>
+            </div>
+            <p>Questions? Contact us at <a href="mailto:hiring@talentAquisition.sars.org" class="text-blue-400 hover:text-blue-300 transition">hiring@talentAquisition.sars.org</a></p>
+            <p class="mt-1">25 Hill St, Ferndale, Randburg, 2194</p>
+            <p class="mt-1">Phone: <a href="tel:0800007277" class="text-blue-400 hover:text-blue-300 transition">080 000 7277</a></p>
+        </div>
+    </footer>
+
+<script>
+    // ===== DATA =====
+    const today = new Date();
+    const availableDates = [];
+    for (let i = 2; i <= 12; i++) {
+        const d = new Date(today);
+        d.setDate(d.getDate() + i);
+        if (d.getDay() !== 0 && d.getDay() !== 6) { // Skip weekends
+            availableDates.push(d);
+        }
+        if (availableDates.length >= 5) break;
+    }
+
+    const slotIcons = {
+        morning: '<svg class="w-7 h-7 text-amber-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"/></svg>',
+        lateMorning: '<svg class="w-7 h-7 text-orange-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636"/><circle cx="12" cy="12" r="4.5" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>',
+        afternoon: '<svg class="w-7 h-7 text-blue-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+        lateAfternoon: '<svg class="w-7 h-7 text-violet-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z"/></svg>'
+    };
+
+    const timeSlots = [
+        { time: '09:00 AM', label: 'Morning', icon: slotIcons.morning, end: '09:45 AM' },
+        { time: '10:00 AM', label: 'Morning', icon: slotIcons.morning, end: '10:45 AM' },
+        { time: '11:00 AM', label: 'Late Morning', icon: slotIcons.lateMorning, end: '11:45 AM' },
+        { time: '01:00 PM', label: 'Afternoon', icon: slotIcons.afternoon, end: '01:45 PM' },
+        { time: '02:30 PM', label: 'Afternoon', icon: slotIcons.afternoon, end: '03:15 PM' },
+        { time: '04:00 PM', label: 'Late Afternoon', icon: slotIcons.lateAfternoon, end: '04:45 PM' },
+    ];
+
+    // Simulate some booked slots
+    const bookedSlots = new Set();
+    availableDates.forEach((date, i) => {
+        const dateStr = date.toISOString().split('T')[0];
+        if (i === 0) bookedSlots.add(dateStr + '-10:00 AM');
+        if (i === 1) bookedSlots.add(dateStr + '-01:00 PM');
+        if (i === 2) bookedSlots.add(dateStr + '-09:00 AM');
+        if (i === 2) bookedSlots.add(dateStr + '-02:30 PM');
+        if (i === 3) bookedSlots.add(dateStr + '-04:00 PM');
+    });
+
+    let selectedDate = availableDates[0];
+    let selectedSlot = null;
+
+    // ===== RENDER =====
+    function formatDate(date, style) {
+        if (style === 'short') {
+            return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+        }
+        if (style === 'full') {
+            return date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+        }
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+
+    function renderDateTabs() {
+        const container = document.getElementById('dateTabs');
+        container.innerHTML = availableDates.map((date, i) => {
+            const isActive = date.toDateString() === selectedDate.toDateString();
+            const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+            const dayNum = date.getDate();
+            const month = date.toLocaleDateString('en-US', { month: 'short' });
+            return `
+                <button onclick="selectDate(${i})"
+                    class="date-tab px-5 py-3 rounded-xl border border-gray-200 text-center min-w-[90px] cursor-pointer ${isActive ? 'active' : 'bg-white hover:border-blue-300 hover:bg-blue-50'}">
+                    <div class="text-xs ${isActive ? 'text-blue-100' : 'text-gray-400'} font-medium">${dayName}</div>
+                    <div class="text-2xl font-bold ${isActive ? '' : 'text-gray-900'}">${dayNum}</div>
+                    <div class="text-xs ${isActive ? 'text-blue-100' : 'text-gray-500'}">${month}</div>
+                </button>
+            `;
+        }).join('');
+    }
+
+    function renderSlots() {
+        const container = document.getElementById('slotsGrid');
+        const dateStr = selectedDate.toISOString().split('T')[0];
+
+        container.innerHTML = timeSlots.map(slot => {
+            const key = dateStr + '-' + slot.time;
+            const isBooked = bookedSlots.has(key);
+            const isSelected = selectedSlot && selectedSlot.date === dateStr && selectedSlot.time === slot.time;
+
+            return `
+                <div onclick="${isBooked ? '' : `selectSlot('${slot.time}','${slot.end}','${slot.label}')`}"
+                    class="slot-card bg-white border-2 ${isSelected ? 'selected border-blue-500' : isBooked ? 'booked border-gray-100' : 'border-gray-100 cursor-pointer'} rounded-2xl p-5 relative overflow-hidden">
+                    ${isSelected ? '<div class="absolute top-3 right-3"><svg class="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></div>' : ''}
+                    ${isBooked ? '<div class="absolute top-3 right-3 text-xs bg-red-50 text-red-500 px-2 py-0.5 rounded-full font-medium">Booked</div>' : ''}
+                    <div class="mb-2">${slot.icon}</div>
+                    <div class="text-xl font-bold text-gray-900 ${isBooked ? 'line-through' : ''}">${slot.time}</div>
+                    <div class="text-sm text-gray-500 mt-0.5">${slot.label} · 45 min</div>
+                    <div class="text-xs text-gray-400 mt-1">${slot.time} — ${slot.end}</div>
+                    ${!isBooked && !isSelected ? '<div class="mt-3 text-xs text-blue-600 font-medium opacity-0 group-hover:opacity-100 transition">Click to select →</div>' : ''}
+                </div>
+            `;
+        }).join('');
+    }
+
+    function selectDate(index) {
+        selectedDate = availableDates[index];
+        selectedSlot = null;
+        document.getElementById('continueBtn').disabled = true;
+        renderDateTabs();
+        renderSlots();
+    }
+
+    function selectSlot(time, end, label) {
+        const dateStr = selectedDate.toISOString().split('T')[0];
+        selectedSlot = { date: dateStr, time, end, label, dateObj: new Date(selectedDate) };
+        document.getElementById('continueBtn').disabled = false;
+        renderSlots();
+    }
+
+    // ===== STEP NAVIGATION =====
+    function updateStepIndicators(currentStep) {
+        const step1 = document.getElementById('step1-indicator');
+        const step3 = document.getElementById('step3-indicator');
+        step1.classList.remove('active', 'completed');
+        step3.classList.remove('active', 'completed');
+        if (currentStep === 1) {
+            step1.classList.add('active');
+        } else {
+            step1.classList.add('completed');
+            step3.classList.add('active');
+        }
+        document.getElementById('line1').style.background = currentStep > 1 ? '#10b981' : '#e5e7eb';
+    }
+
+    function goToStep1() {
+        document.getElementById('step2').classList.add('hidden');
+        document.getElementById('step1').classList.remove('hidden');
+        updateStepIndicators(1);
+        window.scrollTo({ top: document.getElementById('scheduler').offsetTop - 40, behavior: 'smooth' });
+    }
+
+    function goToStep2() {
+        if (!selectedSlot) return;
+        // Skip form — candidate details are known
+        const key = selectedSlot.date + '-' + selectedSlot.time;
+        bookedSlots.add(key);
+        goToStep3({
+            firstName: 'Nokwanda',
+            lastName: 'Khumalo',
+            email: 'nathinokwanda22@gmail.com',
+            phone: '',
+            format: 'virtual',
+            notes: ''
+        });
+    }
+
+    function goToStep3(formData) {
+        document.getElementById('step1').classList.add('hidden');
+        document.getElementById('step2').classList.add('hidden');
+        document.getElementById('step3').classList.remove('hidden');
+
+        const format = formData.format === 'virtual' ? '💻 Virtual (Zoom link will be emailed)' : '🏢 In-Person at SARS';
+
+        const summary = document.getElementById('bookingSummary');
+        summary.innerHTML = `
+            <div class="flex items-center gap-3 pb-5 border-b border-gray-100">
+                <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center text-white font-bold text-lg">
+                    ${formData.firstName[0]}${formData.lastName[0]}
+                </div>
+                <div>
+                    <div class="font-bold text-gray-900 text-lg">${formData.firstName} ${formData.lastName}</div>
+                    <div class="text-gray-500 text-sm">${formData.email}</div>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 py-2">
+                <div>
+                    <div class="text-xs text-gray-400 uppercase tracking-wider font-medium mb-1">Date</div>
+                    <div class="font-semibold text-gray-900">${formatDate(selectedSlot.dateObj, 'full')}</div>
+                </div>
+                <div>
+                    <div class="text-xs text-gray-400 uppercase tracking-wider font-medium mb-1">Time</div>
+                    <div class="font-semibold text-gray-900">${selectedSlot.time} — ${selectedSlot.end}</div>
+                </div>
+                <div>
+                    <div class="text-xs text-gray-400 uppercase tracking-wider font-medium mb-1">Format</div>
+                    <div class="font-semibold text-gray-900">${format}</div>
+                </div>
+
+            </div>
+            ${formData.notes ? `<div class="pt-4 border-t border-gray-100"><div class="text-xs text-gray-400 uppercase tracking-wider font-medium mb-1">Notes</div><div class="text-gray-700">${formData.notes}</div></div>` : ''}
+            <div class="pt-4 border-t border-gray-100 flex items-center gap-2 text-sm text-emerald-600 font-medium">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                Confirmation email sent to ${formData.email}
+            </div>
+        `;
+
+        updateStepIndicators(3);
+        window.scrollTo({ top: document.getElementById('scheduler').offsetTop - 40, behavior: 'smooth' });
+        launchConfetti();
+    }
+
+    // ===== FORM SUBMIT =====
+
+
+    // ===== CONFETTI =====
+    function launchConfetti() {
+        const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+        for (let i = 0; i < 60; i++) {
+            setTimeout(() => {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.width = (Math.random() * 8 + 5) + 'px';
+                confetti.style.height = (Math.random() * 8 + 5) + 'px';
+                confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+                confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                document.body.appendChild(confetti);
+                setTimeout(() => confetti.remove(), 4000);
+            }, i * 30);
+        }
+    }
+
+    // ===== CALENDAR =====
+    function addToCalendar() {
+        const dateStr = selectedSlot.date;
+        const startTime = convertTo24(selectedSlot.time);
+        const endTime = convertTo24(selectedSlot.end);
+        const dtStart = dateStr.replace(/-/g, '') + 'T' + startTime.replace(/:/g, '') + '00';
+        const dtEnd = dateStr.replace(/-/g, '') + 'T' + endTime.replace(/:/g, '') + '00';
+
+        const icsContent = [
+            'BEGIN:VCALENDAR',
+            'VERSION:2.0',
+            'BEGIN:VEVENT',
+            `DTSTART:${dtStart}`,
+            `DTEND:${dtEnd}`,
+            'SUMMARY:Interview - Administrative Assistant at SARS',
+            'DESCRIPTION:Interview with Sarah Ferris (VP of Talent Acquisition) at SARS. Duration: 45 minutes.',
+            
+            'END:VEVENT',
+            'END:VCALENDAR'
+        ].join('\n');
+
+        const blob = new Blob([icsContent], { type: 'text/calendar' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'interview-sars.ics';
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    function convertTo24(timeStr) {
+        const [time, modifier] = timeStr.split(' ');
+        let [hours, minutes] = time.split(':');
+        hours = parseInt(hours);
+        if (modifier === 'PM' && hours !== 12) hours += 12;
+        if (modifier === 'AM' && hours === 12) hours = 0;
+        return String(hours).padStart(2, '0') + ':' + minutes;
+    }
+
+    // ===== INIT =====
+    renderDateTabs();
+    renderSlots();
+</script>
+</body>
+</html>
